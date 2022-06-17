@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+
+	<style type="text/css">
+* {
+	font-family: "Trebuchet MS";
+}
+
+*:focus {
+	outline: none;
+}
+
+html, body {
+	background-color: #F1F2F4;
+	font-size: 14px;
+	margin: 0;
+	padding: 0;
+}
+
+.WiFi_selector {
+	background-color: #F1F2F4;
+	border-radius: 5px;
+	box-shadow: 0px 10px 20px 0 rgba(0, 0, 0, 0.1);
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 100px;
+	padding: 1em;
+	width: min-content;
+}
+
+.WiFi_selector *:not(:first-child) {
+	margin-top: 2em;
+}
+
+.WiFi_selector a {
+	color: lightblue;
+	display: block;
+	margin-top: 1em !important;
+	text-decoration: none;
+	width: max-content;
+	transition: all 0.2s;
+}
+
+.WiFi_selector label {
+	display: block;
+}
+
+.WiFi_selector label *:not(:first-child) {
+	margin-top: 1em;
+}
+
+.WiFi_selector label input,
+.WiFi_selector label select {
+	color: #666;
+}
+
+.WiFi_selector .l_title {
+	color: #999;
+	letter-spacing: 0.2em;
+}
+
+.WiFi_selector input,
+.WiFi_selector select,
+.WiFi_selector .nwk {
+	-moz-box-sizing: border-box;		
+	-webkit-box-sizing: border-box;
+	border-radius: 5px;
+	border: 1px solid #F1F2F4;
+	box-sizing: border-box;
+	min-width: 20em;
+	padding: 1em;
+	transition: all 0.2s;
+	width: 100%;
+}
+
+.WiFi_selector .nwk {
+	padding: 0.5em !important;
+	margin-top: 0.5em !important;
+	display: flex;
+	justify-content: space-between;
+}
+.WiFi_selector .nwk * {
+	margin-top: 0 !important;
+}
+
+.WiFi_selector input:hover,
+.WiFi_selector select:hover {
+	box-shadow: inset 0px 5px 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.WiFi_selector input:focus,
+.WiFi_selector select:focus {
+	border-color: LightBlue;
+}
+
+.WiFi_selector .send {
+	background-color: #999;
+	color: #EEE;
+	cursor: pointer;
+	letter-spacing: 0.2em;
+	transition: all 0.2s;
+}
+
+.WiFi_selector .send:hover {
+	background-color: #666;
+	box-shadow: 0px 5px 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.WiFi_selector .send:focus {
+	background-color: #666;
+	border-color: #F1F2F4;
+}
+
+.WiFi_selector .send:active {
+	box-shadow: inset 0px 5px 10px 0 rgba(0, 0, 0, 0.1);
+	color: LightBlue;
+}
+
+.WiFi_selector .output {
+	-moz-box-sizing: border-box;		
+	-webkit-box-sizing: border-box;
+	background-color: #333;
+	border-radius: 5px;
+	border: none;
+	box-shadow: inset 0px 5px 10px 0 rgba(0, 0, 0, 0.1);
+	box-sizing: border-box;
+	color: #999;
+	padding: 1em;
+}
+
+.WiFi_selector .fgt {
+	color: indianred;
+	opacity: 50%;
+}
+
+.WiFi_selector .fgt:hover {
+	opacity: 100%;
+}
+	</style>
+
+	<title>WiFi Config</title>
+</head>
+<body>
+	<div class="WiFi_selector">
+		<form action="config" method='GET' target="response" id="form" autocomplete="off">
+		<!-- ????? In some cases, the browser will keep suggesting autocompletion values even if the autocomplete attribute is set to off. This unexpected behavior can be quite puzzling for developers. The trick to really forcing the no-autocompletion is to assign a random string to the attribute... Since this random value is not a valid one, the browser will give up. ????? -->
+		<!-- <form action="config" method='GET' target="response" id="form" autocomplete="nope"> -->
+			<div>
+				<label>
+					<div class="l_title">Network name:</div>
+					<input type="text" list="networks" name="ssid" placeholder="">
+					<!-- <input type="text" list="networks" name="ssid" placeholder="14 networks found..."> -->
+				</label>
+				<datalist id="networks">
+					<!-- If scan... -->
+					<!-- <option value="mercedes"> -->
+					<!-- <option value="audi">Audi</option> -->
+				</datalist>
+
+				<a href="/" id="scanNwks">Scan networks...</a>
+			</div>
+			<div>
+				<label>
+					<div class="l_title">Password:</div>
+					<input type="password" name="password">
+				</label>
+			</div>
+			<div>
+				<input type="submit" name="submit" class="send" value="CONNECT">
+			</div>
+			<div class="output">
+				<span style="color: LightBlue;" id="outputTxt">No Js</span>
+				<noscript>
+					<iframe src="/status/html" id='response' name='response' style="border:none;"></iframe>
+					<br>
+					<br>
+					<small>
+						<b>Your browser does not support JavaScript!</b>
+						<br>
+						Manually click to get the connection status.
+					</small>
+				</noscript>
+			</div>
+			<a href="/forget" class="fgt">Forget saved network</a>
+			
+		</form>
+	</div>
+
+	<script>
+
+		const form   = document.getElementById('form');
+		const opt    = document.getElementById('outputTxt');
+		const scan   = document.getElementById('scanNwks');
+		const nwList = document.getElementById('networks');
+		let   nwkCont;
+
+
+
+		/* Set DOM elements only visible ith JavaScript enabled */
+		nwkDiv = document.createElement('div');
+		nwkDiv.innerHTML = `<div class="l_title">Found networks:</div><div id="found"><div class="l_title" style="text-align: center;font-style: italic;">Loading...</div></div>`;
+		form.insertBefore(nwkDiv, form.firstChild);
+		nwkCont = document.getElementById('found');
+		scan.remove();
+		form.ssid.removeAttribute('placeholder');
+		nwList.innerHTML = '';
+
+
+
+
+		form.addEventListener("submit", (ev) => {
+			ev.preventDefault();
+
+			form.submit.select();
+
+			opt.innerHTML = 'Sending data...';
+
+			const smt = ajaxReq();
+			smt.open('GET', encodeURI(`/config?ssid=${form.ssid.value}&password=${form.password.value}`), true);
+			smt.send();
+			
+			smt.onreadystatechange = () => {
+				if (smt.readyState == 4 && (smt.status < 200 || smt.status >= 300) ) {
+					console.log('Error sending data.');
+					opt.innerHTML = 'Error sending data.';
+				}
+			}
+		});
+
+		window.onload = () => {
+			getStatus();
+		}
+
+		function setNwkName(nwkName) {
+			form.ssid.value = nwkName;
+			form.password.select();
+		}
+
+		function ajaxReq() {
+			if (window.XMLHttpRequest) {
+				return new XMLHttpRequest();
+			} else if (window.ActiveXObject) {
+				return new ActiveXObject("Microsoft.XMLHTTP");
+			} else {
+				alert("Browser does not support XMLHTTP.");
+				return false;
+			}
+		}
+
+		function getStatus() {
+			const xmlhttp = ajaxReq();
+			xmlhttp.open('GET', '/status/json', true);
+			xmlhttp.send();
+			
+			xmlhttp.onreadystatechange = () => {
+				opt.innerHTML = 'Getting status...';
+				if (xmlhttp.readyState == 4) {
+					if (xmlhttp.status >= 200 && xmlhttp.status < 300) {
+						try {
+							const resp = JSON.parse( xmlhttp.response );
+
+							// Set status text
+							if (resp.status == 'Connected') {
+								opt.innerHTML = `${resp.status} to ${resp.info.ssid}`;
+							} else {
+								opt.innerHTML = resp.status;
+							}
+
+							// Set found networks
+							nwkCont.innerHTML = `<div class="l_title" style="text-align: center;font-style: italic;">Loading...</div>`;
+							
+							for (let i = 0; i < resp.networks.length; i++) {
+								const nwk = resp.networks[i];
+								const nwkEl = `<div class="nwk send" onclick="setNwkName('${nwk.ssid}');"><span class="n">${nwk.ssid}</span><span class="q">${Math.round((nwk.rssi+80)/40*100)}%</span></div>`;
+
+								if (i == 0) {
+									nwkCont.innerHTML = '';
+								}
+
+								nwkCont.innerHTML += nwkEl;
+								
+								/*
+								Interpretación de los valores
+								En una escala de 0 a -80 RSSI:
+									0: señal ideal, difícil de lograr en la práctica.
+									-40 a -60: señal idónea con tasas de transferencia estables.
+									-60: enlace bueno; ajustando la transmisión (Tx) se puede lograr una conexión estable al 80%.
+									-70: enlace medio-bajo; es una señal medianamente buena aunque se pueden sufrir problemas con lluvia y viento.
+									-80: es la señal mínima aceptable para establecer la conexión; pueden ocurrir caídas que se traducen en corte de comunicación (pérdida de llamada, pérdida de datos), mensajes sms corruptos (ilegibles), etc.
+									Hay que tener en cuenta que el rango de valores representados pueden variar entre diferentes fabricantes y no están del todo estandarizados.
+
+								Equivalencias dBm
+								Tabla de equivalencias aproximada para averiguar el nivel de cobertura en función de los dBm en aire recibidos:
+									Más de -76 dBm (números más cercanos a 0) = Excelente
+									Entre -89 y -77 = Muy buena
+									Entre -97 y -90 = Buena/Media
+									Entre -103 y -98 = Baja cobertura
+									Entre -112 y -104 = Bajísima cobertura (problemas para establecer llamadas)
+									Entre -113 y -132 dBm = Muy poca cobertura (problemas para establecer llamadas y rendimiento bajisimo)
+									A partir de -135 = Sin cobertura
+
+								Porcentaje propio:
+									> -76 dBm	= 100%
+									-89  - -77	= 75%
+									-97  - -90	= 50%
+									-103 - -98	= 25%
+									< -112 dBm	= 0%
+
+								Relacion propia (%):
+									(RSSI+80)/40 = %
+
+									o
+
+									(dBm+112)/36 = %
+
+									(limitar entre 0 - 100)
+								*/
+							}
+
+							setTimeout(getStatus, 1000);
+						} catch(er) {
+							opt.innerHTML = 'Error. Check console.';
+							console.error(er);
+							console.log(xmlhttp.response);
+						}
+					} else {
+						nwkCont.innerHTML = `<div class="l_title" style="text-align: center;font-style: italic;">Error</div>`;
+						opt.innerHTML = 'Error connecting to AP.';
+						setTimeout(getStatus, 5000);
+					}
+				}
+			}
+			
+		}
+	</script>
+	
+</body>
+</html>
+
+<!-- https://javascript-minifier.com/ -->
+<!-- https://www.willpeavy.com/tools/minifier/ -->
+<!-- https://www.freeformatter.com/javascript-escape.html#ad-output -->

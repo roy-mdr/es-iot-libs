@@ -1,0 +1,27 @@
+* {
+	font-family: "Trebuchet MS";
+}
+
+html, body {
+	font-size: 14px;
+	margin: 0;
+	padding: 0;
+	color: lightblue;
+}
+
+a {
+	background-color: #f1f2f4;
+	border-radius: 5px;
+	color: #666;
+	display: block;
+	margin: 1em;
+	padding: 0.5em;
+	text-decoration: none;
+	width: max-content;
+	transition: all 0.2s;
+}
+
+a:hover {
+	background-color: LightBlue;
+	color: #333;
+}

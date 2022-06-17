@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+
+	<style type="text/css">
+* {
+	font-family: "Trebuchet MS";
+}
+
+*:focus {
+	outline: none;
+}
+
+html, body {
+	background-color: #F1F2F4;
+	font-size: 14px;
+	margin: 0;
+	padding: 0;
+}
+
+.WiFi_selector {
+	background-color: #F1F2F4;
+	border-radius: 5px;
+	box-shadow: 0px 10px 20px 0 rgba(0, 0, 0, 0.1);
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 100px;
+	padding: 1em;
+	width: min-content;
+}
+
+.WiFi_selector *:not(:first-child) {
+	margin-top: 2em;
+}
+
+.WiFi_selector a {
+	color: lightblue;
+	display: block;
+	margin-top: 1em !important;
+	text-decoration: none;
+	width: max-content;
+	transition: all 0.2s;
+}
+
+.WiFi_selector label {
+	display: block;
+}
+
+.WiFi_selector label *:not(:first-child) {
+	margin-top: 1em;
+}
+
+.WiFi_selector label input,
+.WiFi_selector label select {
+	color: #666;
+}
+
+.WiFi_selector label .l_title {
+	color: #999;
+	letter-spacing: 0.2em;
+}
+
+.WiFi_selector input,
+.WiFi_selector select {
+	-moz-box-sizing: border-box;		
+	-webkit-box-sizing: border-box;
+	border-radius: 5px;
+	border: 1px solid #F1F2F4;
+	box-sizing: border-box;
+	min-width: 20em;
+	padding: 1em;
+	transition: all 0.2s;
+	width: 100%;
+}
+
+.WiFi_selector input:hover,
+.WiFi_selector select:hover {
+	box-shadow: inset 0px 5px 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.WiFi_selector input:focus,
+.WiFi_selector select:focus {
+	border-color: LightBlue;
+}
+
+.WiFi_selector .send {
+	background-color: #999;
+	color: #EEE;
+	cursor: pointer;
+	letter-spacing: 0.2em;
+	transition: all 0.2s;
+}
+
+.WiFi_selector .send:hover {
+	background-color: #666;
+	box-shadow: 0px 5px 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.WiFi_selector .send:focus {
+	background-color: #666;
+	border-color: #F1F2F4;
+}
+
+.WiFi_selector .send:active {
+	box-shadow: inset 0px 5px 10px 0 rgba(0, 0, 0, 0.1);
+	color: LightBlue;
+}
+
+.output {
+	-moz-box-sizing: border-box;		
+	-webkit-box-sizing: border-box;
+	background-color: #333;
+	border-radius: 5px;
+	border: none;
+	box-shadow: inset 0px 5px 10px 0 rgba(0, 0, 0, 0.1);
+	box-sizing: border-box;
+	color: #999;
+	padding: 1em;
+}
+	</style>
+
+	<title>WiFi Config</title>
+</head>
+<body>
+	<div class="WiFi_selector">
+		<form action="config" method='GET' target="response" id="form" autocomplete="off">
+		<!-- ????? In some cases, the browser will keep suggesting autocompletion values even if the autocomplete attribute is set to off. This unexpected behavior can be quite puzzling for developers. The trick to really forcing the no-autocompletion is to assign a random string to the attribute... Since this random value is not a valid one, the browser will give up. ????? -->
+		<!-- <form action="config" method='GET' target="response" id="form" autocomplete="nope"> -->
+			<div>
+				<label>
+					<div class="l_title">Network Name:</div>
+					<input list="networks" name="ssid">
+				</label>
+				<datalist id="networks">
+					<!-- If scan... -->
+					<!-- <option value="mercedes"> -->
+					<!-- <option value="audi">Audi</option> -->
+				</datalist>
+				<a href="?scan=1">Scan networks...</a>
+			</div>
+			<div>
+				<label>
+					<div class="l_title">Password:</div>
+					<input type="password" name="password">
+				</label>
+			</div>
+			<div>
+				<input type="submit" name="submit" class="send" value="CONNECT">
+			</div>
+			<div class="output">
+				<span style="color: LightBlue;" id="outputTxt">No Js</span>
+				<noscript>
+					<iframe src="/status/html" id='response' name='response' style="border:none;"></iframe>
+					<br>
+					<br>
+					<small>
+						<b>Your browser does not support JavaScript!</b>
+						<br>
+						Manually click to get the connection status.
+					</small>
+				</noscript>
+			</div>
+			
+		</form>
+	</div>
+
+	<script>
+		const form = document.getElementById('form');
+		const opt = document.getElementById('outputTxt');
+
+		form.addEventListener("submit", (ev) => {
+			ev.preventDefault();
+
+			opt.innerHTML = 'Sending data...';
+
+			const smt = ajaxReq();
+			smt.open('GET', encodeURI(`/config?ssid=${form.ssid.value}&password=${form.password.value}`), true);
+			smt.send();
+			
+			smt.onreadystatechange = () => {
+				if (smt.readyState == 4 && (smt.status < 200 || smt.status >= 300) ) {
+					console.log('Error sending data.');
+					opt.innerHTML = 'Error sending data.';
+				}
+			}
+		});
+
+		window.onload = () => {
+			getStatus();
+		}
+
+		function ajaxReq() {
+			if (window.XMLHttpRequest) {
+				return new XMLHttpRequest();
+			} else if (window.ActiveXObject) {
+				return new ActiveXObject("Microsoft.XMLHTTP");
+			} else {
+				alert("Browser does not support XMLHTTP.");
+				return false;
+			}
+		}
+
+		function getStatus() {
+			const xmlhttp = ajaxReq();
+			xmlhttp.open('GET', '/status/json', true);
+			xmlhttp.send();
+			
+			xmlhttp.onreadystatechange = () => {
+				opt.innerHTML = 'Getting status...';
+				if (xmlhttp.readyState == 4) {
+					if (xmlhttp.status >= 200 && xmlhttp.status < 300) {
+						try {
+							const resp = JSON.parse( xmlhttp.response );
+							if (resp.status == 'Connected') {
+								opt.innerHTML = `${resp.status} to ${resp.info.ssid}`;
+							} else {
+								opt.innerHTML = resp.status;
+							}
+
+							setTimeout(getStatus, 1000);
+						} catch(er) {
+							opt.innerHTML = 'Error. Check console.';
+							console.error(er);
+							console.log(xmlhttp.response);
+						}
+					} else {
+						opt.innerHTML = 'Error connecting to AP.';
+						setTimeout(getStatus, 5000);
+					}
+				}
+			}
+			
+		}
+	</script>
+	
+</body>
+</html>
+
+<!-- https://javascript-minifier.com/ -->
+<!-- https://www.willpeavy.com/tools/minifier/ -->
+<!-- https://www.freeformatter.com/javascript-escape.html#ad-output -->

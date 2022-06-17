@@ -1,0 +1,88 @@
+-----
+MEMORIA_SSID (STRING)
+MEMORIA_PASS (STRING)
+TMP_SSID (STRING)
+TMP_PASS (STRING)
+AP_SSID (STRING)
+AP_PASS (STRING)
+WIFI_STATUS (BOOL)
+CONECTANDO (BOOL)
+MODO SERVIDOR (BOOL)
+-----
+
+
+----- ENCENDER
+REVISAR SI HAY DATOS EN MEMORIA
+	SI:
+		LEE LOS DATOS
+		INTENTA CONECTAR CON DATOS DE MEMORIA()
+	NO:
+		MODO SERVIDOR()
+
+----- PRESIONAR BOTON
+	MODO SERVIDOR?
+		SI:
+			MODO WIFI()
+		NO:
+			MODO SERVIDOR()
+
+----- RECIBIR DATOS DE PAGINA DE CONFIG
+	LEE DATOS EN MEMORIA Y LOS GUARDA EN TMP
+	GRABA DATOS RECIBIDOS EN MEMORIA
+	INTENTA CONECTAR CON DATOS DE MEMORIA()
+
+MODO SERVIDOR() {
+	INICIAR SERVIDOR(AP_SSID, AP_PASS)
+	MODO SERVIDOR = TRUE
+	LED BLINK LENTO
+}
+
+MODO WIFI() {
+	DETENER SERVIDOR
+	MODO SERVIDOR = FALSE
+	LED BLINK APAGADO
+}
+
+INTENTA CONECTAR CON DATOS DE MEMORIA() {
+	CONECTANDO = TRUE
+	LEE DATOS DE MEMORIA
+	CONECTAR WIFI (MEMORIA_SSID, MEMORIA_PASS)
+	LED BLINK RAPIDO
+	ESPERAR 10 SEGUNDOS...
+	CONECTÓ?
+		SI:
+			CONECTANDO = FALSE
+			WIFI_STATUS = TRUE
+			LED ENCENDIDO
+		NO:
+			CONECTANDO = FALSE
+			WIFI_STATUS = FALSE
+			HAY DATOS EN TMP?
+				SI:
+					PASA DE TMP A MEMORIA
+			LED APAGADO
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TODO:
+
+REVISAR ESTABILIDAD AP: https://github.com/esp8266/Arduino/issues/1615
+	doing an ESP.eraseConfig() at the beginning os setup()does not solve the problem. May be disabling auto connect could help
+Quitar variable serverInit con otro funcion para detectar si esta en modo AP
+	WiFi.mode(WIFI_AP) ? "server initiated" : "no server"
+URL decode al recibir datos de GET (antes de guardarlos en memoria)
+resolver Windows: USA UN ESTANDAR DE SEGURIDAD ANTERIOR... (creo que es porque no tenía contraseña)
+LED blink async
+Flush scanned networks as it reads.
