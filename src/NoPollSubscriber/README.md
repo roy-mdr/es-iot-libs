@@ -29,6 +29,7 @@ Manages the client logic of the notification server.
 - make function: `void onParsed(String) {}` Will receive a raw JSON string. So parsing should be done here.
 
 - In `loop()`: `handleNoPollSubscription(..., doInLoop, onConnected, onParsed);`
+    - If you don't want to call a function (ej. onConnected) just do an empty lambda expression: `handleNoPollSubscription(..., doInLoop, [](){}, onParsed);`
 
 ## TO DOs
 
