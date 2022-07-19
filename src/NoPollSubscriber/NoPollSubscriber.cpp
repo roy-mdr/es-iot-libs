@@ -130,10 +130,13 @@ void handleNoPollSubscription(WiFiClient &client, String subHost, int subPort, S
                 	}
                 	line.remove(0, 1);
                 }
+                line.remove(line.length() - 1, 1);
                 /*****************************************************/
 
-                /*** DO ON-PARSED CALLBACK ***/
-                NPS_onParsed(line);
+                if (line.length() > 0) {
+                  /*** DO ON-PARSED CALLBACK ***/
+                  NPS_onParsed(line);
+                }
                 
               }
               readStr = !readStr;
