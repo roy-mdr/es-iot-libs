@@ -63,3 +63,5 @@ Manages the configuration server and reconnection routines:
 ## TO DOs
 
 - [ ] Make it able to connect to Enterprise networks (WPA2-ENTERPRISE)
+- [ ] How to redirecto to internal ports if a server is open?
+- [ ] Test keeping a server open to listen on LAN (admin device from PC)
