@@ -125,6 +125,9 @@ void handleNoPollSubscription(WiFiClient &client, String subHost, int subPort, S
                 /***** PLEASE IMPLEMENT THE ACTUAL LOGIC HERE XD *****/
                 int quotes = 0;
                 while (quotes < 4) {
+                  if (line.length() == 1) {
+                    break;
+                  }
                 	if (line[0] == '\'') {
                 		quotes++;
                 	}
