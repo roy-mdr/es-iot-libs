@@ -43,8 +43,6 @@ bool changed(String gotStat, String &compareVar) {
 ////////////////////////////////////////////// SETUP //////////////////////////////////////////////
 
 void setup() {
-  ///// SETUP RUNS ONLY ON 'RESTART' (qhen you click on restart button) /////
-  ///// SETUP DOEN NOT RUN WHEN YOU PLUG AGAIN THE WeMos /////
   // put your setup code here, to run once:
   Serial.begin(115200);
   EEPROM.begin(4096);
@@ -71,7 +69,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   
-  server.handleClient();
+  wifiConfigLoop(server);
   
   if (WiFi.status() == WL_CONNECTED) {
     // Do while WiFi is connected
@@ -84,7 +82,7 @@ void loop() {
   if ( changed((String)digitalRead(5), pin5value) ) {
     Serial.print("cambio pin 5 a: ");
     Serial.println(pin5value);
-    pin5value == "1" ? ESP_AP_STA(server, AP_SSID, AP_PASSWORD) : ESP_STATION(server);
+    pin5value == "1" ? ESP_AP_STA(server, AP_SSID, AP_PASSWORD) : ESP_STATION(server, true);
   }
   
 }

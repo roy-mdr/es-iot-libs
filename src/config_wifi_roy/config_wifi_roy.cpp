@@ -467,19 +467,27 @@ String getNetStatus() {
 /////////////////////////////////////////////////
 ///////////////// STATION MODE /////////////////
 
-void ESP_STATION(ESP8266WebServer &server) {
+void ESP_STATION(ESP8266WebServer &server, bool keepServerOpenInLAN) {
 
 	if ( WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA ) {
 		Serial.println("Closing server...");
 	}
-	
-	Serial.println("Initializing as Station...");
-	
-	server.stop(); ///// DEBUGGING... ???
-	server.close(); ///// DEBUGGING... ???
+
+	Serial.print("Initializing as Station... ");
+
+	if (keepServerOpenInLAN) {
+		Serial.println("Keep server listening on LAN");
+		server.begin();
+	} else {
+		Serial.println("Don't keep server listening on LAN");
+		server.stop(); ///// DEBUGGING... ???
+		server.close(); ///// DEBUGGING... ???
+	}
+
 	WiFi.mode(WIFI_STA); ///// DEBUGGING... uncomment if using one of the above
 	
 	// WiFi.softAPdisconnect(true) ? Serial.println("Server closed.") : Serial.println("Fail closing server."); ///// DEBUGGING... ('true' to remove the AP mode ??? BUT SETS MODE TO NULL ???)
+
 }
 
 /////////////////////////////////////////////////

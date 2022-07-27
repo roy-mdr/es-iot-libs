@@ -74,7 +74,7 @@ void getNetworksAsync(bool shouldScan);
 
 String getNetStatus();
 
-void ESP_STATION(ESP8266WebServer &server);
+void ESP_STATION(ESP8266WebServer &server, bool keepServerOpenInLAN);
 
 void ESP_AP_STA(ESP8266WebServer &server, char *ssid_AP, char *password_AP);
 
