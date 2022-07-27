@@ -24,7 +24,9 @@ void handleNoPollSubscription(WiFiClient &client, String subHost, int subPort, S
   if (WiFi.status() == WL_CONNECTED) {
     // Do while WiFi is connected
     
-    Serial.printf("\n[Connecting to %s ... ", subHost);
+    Serial.print("\n[Connecting to ");
+    Serial.print(subHost);
+    Serial.print(" ... ");
     // Intentamos conectarnos
     if (client.connect(subHost, subPort)) {
       Serial.println("connected]");
