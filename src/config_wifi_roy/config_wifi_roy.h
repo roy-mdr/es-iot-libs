@@ -1,24 +1,24 @@
 
-/* ===================================================== USO ===================================================== */
-/*                                                                                                                 */
-/* #include <config_wifi_roy.h>                                                                                    */
-/* ESP8266WebServer server(80);                                                                                    */
-/*                                                                                                                 */
-/* #define EEPROM_ADDR_CONNECTED_SSID 1       // Start saving connected network SSID from this memory address      */
-/* #define EEPROM_ADDR_CONNECTED_PASSWORD 30  // Start saving connected network Password from this memory address  */
-/* #define AP_SSID "ESP8266_AP"               // Set your own Network Name (SSID)                                  */
-/* #define AP_PASSWORD "12345678"             // Set your own password                                             */
-/*                                                                                                                 */
-/* setup() {                                                                                                       */
-/* 	EEPROM.begin(4096);                                                                                            */
-/* 	setupWifiConfigServer(server, EEPROM_ADDR_CONNECTED_SSID, EEPROM_ADDR_CONNECTED_PASSWORD);                     */
-/* }                                                                                                               */
-/*                                                                                                                 */
-/* loop() {                                                                                                        */
-/* 	wifiConfigLoop(server);                                                                                        */
-/* }                                                                                                               */
-/*                                                                                                                 */
-/* =============================================================================================================== */
+/* ====================================================== USO ====================================================== */
+/*                                                                                                                   */
+/* #include <config_wifi_roy.h>                                                                                      */
+/* ESP8266WebServer server(80);                                                                                      */
+/*                                                                                                                   */
+/* #define EEPROM_ADDR_CONNECTED_SSID 1       // Start saving connected network SSID from this memory address        */
+/* #define EEPROM_ADDR_CONNECTED_PASSWORD 30  // Start saving connected network Password from this memory address    */
+/* #define AP_SSID "ESP8266_AP"               // Set your own Network Name (SSID)                                    */
+/* #define AP_PASSWORD "12345678"             // Set your own password                                               */
+/*                                                                                                                   */
+/* setup() {                                                                                                         */
+/* 	EEPROM.begin(4096);                                                                                              */
+/* 	setupWifiConfigServer(server, EEPROM_ADDR_CONNECTED_SSID, EEPROM_ADDR_CONNECTED_PASSWORD, AP_SSID, AP_PASSWORD); */
+/* }                                                                                                                 */
+/*                                                                                                                   */
+/* loop() {                                                                                                          */
+/* 	wifiConfigLoop();                                                                                                */
+/* }                                                                                                                 */
+/*                                                                                                                   */
+/* ================================================================================================================= */
 
 
 
@@ -41,7 +41,9 @@
 /* IN BETWEEN (HERE) GOES THE PLACEHOLDER TEXT DISPLAYING HOW MANY NETWORKS WERE FOUND. EJ. "3 Networks found..." (without double quotes) */
 #define WIFI_ROY_MAIN_2		"\"><\/label><datalist id=\"networks\">"
 /* IN BETWEEN (HERE) GOES THE SCANNED NETWORKS */
-#define WIFI_ROY_MAIN_3		"<\/datalist><a href=\"/\" id=\"scanNwks\">Scan networks...</a><\/div><div><label><div class=\"l_title\">Password:<\/div><input type=\"password\" name=\"password\"><\/label><\/div><div><input type=\"submit\" name=\"submit\" class=\"send\" value=\"CONNECT\"><\/div><div class=\"output\"><span style=\"color: LightBlue;\" id=\"outputTxt\">No Js<\/span><noscript><iframe src=\"\/status\/html\" id=\'response\' name=\'response\' style=\"border:none;\"><\/iframe><br><br><small><b>Your browser does not support JavaScript!<\/b><br>Manually click to get the connection status.<\/small><\/noscript><\/div><a href=\"\/forget\" class=\"fgt\">Forget saved network<\/a><\/form><\/div><script>const form=document.getElementById(\"form\"),opt=document.getElementById(\"outputTxt\"),scan=document.getElementById(\"scanNwks\"),nwList=document.getElementById(\"networks\");let nwkCont;function setNwkName(t){form.ssid.value=t,form.password.select()}function ajaxReq(){return window.XMLHttpRequest?new XMLHttpRequest:window.ActiveXObject?new ActiveXObject(\"Microsoft.XMLHTTP\"):(alert(\"Browser does not support XMLHTTP.\"),!1)}function getStatus(){const t=ajaxReq();t.open(\"GET\",\"\/status\/json\",!0),t.send(),t.onreadystatechange=(()=>{if(opt.innerHTML=\"Getting status...\",4==t.readyState)if(t.status>=200&&t.status<300)try{const e=JSON.parse(t.response);\"Connected\"==e.status?opt.innerHTML=`${e.status} to ${e.info.ssid}`:opt.innerHTML=e.status,nwkCont.innerHTML=\'<div class=\"l_title\" style=\"text-align: center;font-style: italic;\">Loading...<\/div>\';for(let t=0;t<e.networks.length;t++){const n=e.networks[t],s=`<div class=\"nwk send\" onclick=\"setNwkName(\'${n.ssid}\');\"><span class=\"n\">${n.ssid}<\/span><span class=\"q\">${Math.round((n.rssi+80)\/40*100)}%<\/span><\/div>`;0==t&&(nwkCont.innerHTML=\"\"),nwkCont.innerHTML+=s}setTimeout(getStatus,1e3)}catch(e){opt.innerHTML=\"Error. Check console.\",console.error(e),console.log(t.response)}else nwkCont.innerHTML=\'<div class=\"l_title\" style=\"text-align: center;font-style: italic;\">Error<\/div>\',opt.innerHTML=\"Error connecting to AP.\",setTimeout(getStatus,5e3)})}nwkDiv=document.createElement(\"div\"),nwkDiv.innerHTML=\'<div class=\"l_title\">Found networks:<\/div><div id=\"found\"><div class=\"l_title\" style=\"text-align: center;font-style: italic;\">Loading...<\/div><\/div>\',form.insertBefore(nwkDiv,form.firstChild),nwkCont=document.getElementById(\"found\"),scan.remove(),form.ssid.removeAttribute('placeholder'),nwList.innerHTML='',form.addEventListener(\"submit\",t=>{t.preventDefault(),form.submit.select(),opt.innerHTML=\"Sending data...\";const e=ajaxReq();e.open(\"GET\",encodeURI(`\/config?ssid=${form.ssid.value}&password=${form.password.value}`),!0),e.send(),e.onreadystatechange=(()=>{4==e.readyState&&(e.status<200||e.status>=300)&&(console.log(\"Error sending data.\"),opt.innerHTML=\"Error sending data.\")})}),window.onload=(()=>{getStatus()});<\/script><\/body><\/html>"
+#define WIFI_ROY_MAIN_3		"<\/datalist><a href=\"/\" id=\"scanNwks\">Scan networks...</a><\/div><div><label><div class=\"l_title\">Password:<\/div><input type=\"password\" name=\"password\"><\/label><\/div><div><input type=\"submit\" name=\"submit\" class=\"send\" value=\"CONNECT\"><\/div><div class=\"output\"><span style=\"color: LightBlue;\" id=\"outputTxt\">No Js<\/span><noscript><iframe src=\"\/status\/html\" id=\'response\' name=\'response\' style=\"border:none;\"><\/iframe><br><br><small><b>Your browser does not support JavaScript!<\/b><br>Manually click to get the connection status.<\/small><\/noscript><\/div>"
+/* IN BETWEEN (HERE) GOES THE BUTTON TO CLOSE/START THE ACCES POINT (DEPPENDING OF THE AP STATE) */
+#define WIFI_ROY_MAIN_4		"<br><a href=\"\/forget\" class=\"fgt\">Forget saved network<\/a><\/form><\/div><script>const form=document.getElementById(\"form\"),opt=document.getElementById(\"outputTxt\"),scan=document.getElementById(\"scanNwks\"),nwList=document.getElementById(\"networks\");let nwkCont;function setNwkName(t){form.ssid.value=t,form.password.select()}function ajaxReq(){return window.XMLHttpRequest?new XMLHttpRequest:window.ActiveXObject?new ActiveXObject(\"Microsoft.XMLHTTP\"):(alert(\"Browser does not support XMLHTTP.\"),!1)}function getStatus(){const t=ajaxReq();t.open(\"GET\",\"\/status\/json\",!0),t.send(),t.onreadystatechange=(()=>{if(opt.innerHTML=\"Getting status...\",4==t.readyState)if(t.status>=200&&t.status<300)try{const e=JSON.parse(t.response);\"Connected\"==e.status?opt.innerHTML=`${e.status} to ${e.info.ssid}`:opt.innerHTML=e.status,nwkCont.innerHTML=\'<div class=\"l_title\" style=\"text-align: center;font-style: italic;\">Loading...<\/div>\';for(let t=0;t<e.networks.length;t++){const n=e.networks[t],s=`<div class=\"nwk send\" onclick=\"setNwkName(\'${n.ssid}\');\"><span class=\"n\">${n.ssid}<\/span><span class=\"q\">${Math.round((n.rssi+80)\/40*100)}%<\/span><\/div>`;0==t&&(nwkCont.innerHTML=\"\"),nwkCont.innerHTML+=s}setTimeout(getStatus,1e3)}catch(e){opt.innerHTML=\"Error. Check console.\",console.error(e),console.log(t.response)}else nwkCont.innerHTML=\'<div class=\"l_title\" style=\"text-align: center;font-style: italic;\">Error<\/div>\',opt.innerHTML=\"Error connecting to AP.\",setTimeout(getStatus,5e3)})}nwkDiv=document.createElement(\"div\"),nwkDiv.innerHTML=\'<div class=\"l_title\">Found networks:<\/div><div id=\"found\"><div class=\"l_title\" style=\"text-align: center;font-style: italic;\">Loading...<\/div><\/div>\',form.insertBefore(nwkDiv,form.firstChild),nwkCont=document.getElementById(\"found\"),scan.remove(),form.ssid.removeAttribute('placeholder'),nwList.innerHTML='',form.addEventListener(\"submit\",t=>{t.preventDefault(),form.submit.select(),opt.innerHTML=\"Sending data...\";const e=ajaxReq();e.open(\"GET\",encodeURI(`\/config?ssid=${form.ssid.value}&password=${form.password.value}`),!0),e.send(),e.onreadystatechange=(()=>{4==e.readyState&&(e.status<200||e.status>=300)&&(console.log(\"Error sending data.\"),opt.innerHTML=\"Error sending data.\")})}),window.onload=(()=>{getStatus()});<\/script><\/body><\/html>"
 
 // COMMON CSS FILE FOR NO-JAVASCRIPT-ALLOWED-PAGE
 #define WIFI_ROY_NO_JS_CSS	"*{font-family: \"Trebuchet MS\";}html, body{font-size: 14px;margin: 0;padding: 0;color: lightblue;}a{background-color: #f1f2f4;border-radius: 5px;color: #666;display: block;margin: 1em;padding: 0.5em;text-decoration: none;width: max-content;transition: all 0.2s;}a:hover{background-color: LightBlue;color: #333;}"
@@ -62,7 +64,7 @@
 
 
 
-void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD);
+void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD, char *ssid_for_AP, char *password_for_AP);
 
 void wifiConfigLoop(ESP8266WebServer &server);
 
@@ -74,9 +76,11 @@ void getNetworksAsync(bool shouldScan);
 
 String getNetStatus();
 
-void ESP_STATION(ESP8266WebServer &server, bool keepServerOpenInLAN);
+void ESP_STATION(bool keepServerOpenInLAN);
 
-void ESP_AP_STA(ESP8266WebServer &server, char *ssid_AP, char *password_AP);
+void ESP_AP_STA();
+
+void ESP_AP_TOGGLE(bool keepServerOpenInLAN);
 
 
 

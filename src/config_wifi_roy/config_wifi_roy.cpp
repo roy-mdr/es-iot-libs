@@ -1,14 +1,16 @@
 #include "config_wifi_roy.h"
 
 
+ESP8266WebServer *configWifiServer;
+
 int EEPROM_ADDR_CONNECTED_SSID = 0;
 int EEPROM_ADDR_CONNECTED_PASSWORD = 0;
 
 String tmpSSID = "";
 String tmpPass = "";
 
-// const char *ssid_AP = ""; // Set your own Network Name (SSID)
-// const char *password_AP = ""; // Set your own password
+char *ssid_AP; // Set your own Network Name (SSID)
+char *password_AP; // Set your own password
 
 IPAddress server_ip(192, 168, 0, 1);
 IPAddress server_gateway(192, 168, 0, 1); // The gateway should be the same as the IP or the AP will be unstable!
@@ -40,30 +42,36 @@ unsigned int nwsc_result_total = 0;
 /////////////////////////////////////////////////
 ///////////////// CONFIG SERVER /////////////////
 
-void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD) {
+void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD, char *ssid_for_AP, char *password_for_AP) {
+
+	configWifiServer               = &server;
+	EEPROM_ADDR_CONNECTED_SSID     = EEPROM_ADDR_FOR_SSID;
+	EEPROM_ADDR_CONNECTED_PASSWORD = EEPROM_ADDR_FOR_PASSWORD;
+	ssid_AP                        = ssid_for_AP;
+	password_AP                    = password_for_AP;
 
 	WiFi.setAutoReconnect(false); // Establece si el módulo intentará volver a conectarse a un punto de acceso en caso de que esté desconectado.
 	WiFi.setAutoConnect(false); // Configura el módulo para conectarse automáticamente tras encenderse al último punto de acceso utilizado.
 
-	EEPROM_ADDR_CONNECTED_SSID = EEPROM_ADDR_FOR_SSID;
-	EEPROM_ADDR_CONNECTED_PASSWORD = EEPROM_ADDR_FOR_PASSWORD;
 
 
-
-	server.on("/", [&]() {
-		server.send(200, "text/html", String(WIFI_ROY_MAIN_1)
+	configWifiServer->on("/", [&]() {
+		configWifiServer->send(200, "text/html", String(WIFI_ROY_MAIN_1)
 			+ nwsc_result_total + " Networks found..."
 			+ WIFI_ROY_MAIN_2
 			+ nwsc_result_html
-			+ WIFI_ROY_MAIN_3);
+			+ WIFI_ROY_MAIN_3
+			+ (WiFi.getMode() == WIFI_STA ? "<a href=\"\/start_ap\">Start Access Point<\/a>" : "<a href=\"\/close_ap?stop=false\">Close Access Point<\/a>")
+			+ WIFI_ROY_MAIN_4
+		);
 	});
 
-	server.on("/status/json", [&]() {
-		server.send(200, "application/json", String("{\"status\":\"") + getNetStatus() + "\"" + (WiFi.isConnected() ? ",\"info\":{\"ssid\":\"" + EEPROM_READ(EEPROM_ADDR_CONNECTED_SSID) + "\"}" : "") + ",\"networks\":" + nwsc_result_json + "}" );
+	configWifiServer->on("/status/json", [&]() {
+		configWifiServer->send(200, "application/json", String("{\"status\":\"") + getNetStatus() + "\"" + (WiFi.isConnected() ? ",\"info\":{\"ssid\":\"" + EEPROM_READ(EEPROM_ADDR_CONNECTED_SSID) + "\"}" : "") + ",\"networks\":" + nwsc_result_json + "}" );
 	});
 
-	server.on("/status/html", [&]() {
-		server.send(200, "text/html", String(WIFI_ROY_STATUS_HTML_1)
+	configWifiServer->on("/status/html", [&]() {
+		configWifiServer->send(200, "text/html", String(WIFI_ROY_STATUS_HTML_1)
 			+ WIFI_ROY_NO_JS_CSS
 			+ WIFI_ROY_STATUS_HTML_2
 			+ getNetStatus()
@@ -72,8 +80,8 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		);
 	});
 
-	server.on("/config", [&]() {
-		server.send(200, "text/html", String(WIFI_ROY_CONFIG_1)
+	configWifiServer->on("/config", [&]() {
+		configWifiServer->send(200, "text/html", String(WIFI_ROY_CONFIG_1)
 			+ WIFI_ROY_NO_JS_CSS
 			+ WIFI_ROY_CONFIG_2
 		);
@@ -84,16 +92,16 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		}
 
 		// Receive GET values via URL query
-		EEPROM_WRITE(EEPROM_ADDR_CONNECTED_SSID, server.arg("ssid"));
-		EEPROM_WRITE(EEPROM_ADDR_CONNECTED_PASSWORD, server.arg("password"));
+		EEPROM_WRITE(EEPROM_ADDR_CONNECTED_SSID, configWifiServer->arg("ssid"));
+		EEPROM_WRITE(EEPROM_ADDR_CONNECTED_PASSWORD, configWifiServer->arg("password"));
 
 		connectWiFi();
 	});
 
-	server.on("/forget", [&]() {
+	configWifiServer->on("/forget", [&]() {
 
-		server.sendHeader("Location", String("/"), true); // Redirecto to home /
-		server.send ( 302, "text/plain", "");
+		configWifiServer->sendHeader("Location", String("/"), true); // Redirecto to home /
+		configWifiServer->send ( 302, "text/plain", "");
 
 		/* Disconnect from network and erase ssid from memory */
 		Serial.println("Erasing SSID and password...");
@@ -104,10 +112,34 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		WiFi.disconnect();
 	});
 
+	configWifiServer->on("/start_ap", [&]() {
+
+		configWifiServer->sendHeader("Location", String("/"), true); // Redirecto to home /
+		configWifiServer->send ( 302, "text/plain", "");
+
+		ESP_AP_STA();
+	});
+
+	configWifiServer->on("/close_ap", [&]() {
+
+		configWifiServer->sendHeader("Location", String("/"), true); // Redirecto to home /
+		configWifiServer->send ( 302, "text/plain", "");
+
+		if ( configWifiServer->arg("stop") == "true" ) {
+			ESP_STATION(false);
+		} else {
+			ESP_STATION(true);
+		}
+	});
+
 
 	if ( !EEPROM_CELL_IS_EMPTY(EEPROM_ADDR_CONNECTED_SSID) ) {
 		Serial.println("Found SSID in memory... Trying to connect...");
 		connectWiFi();
+		ESP_STATION(true);
+	} else {
+		Serial.println("Din't found SSID in memory... Starting WIFI Access Point...");
+		ESP_AP_STA();
 	}
 }
 
@@ -120,7 +152,7 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 
 void wifiConfigLoop(ESP8266WebServer &server) {
 	
-	server.handleClient();
+	configWifiServer->handleClient();
 
 	// LED CONTROLL
 	handleLedBlink();
@@ -467,7 +499,7 @@ String getNetStatus() {
 /////////////////////////////////////////////////
 ///////////////// STATION MODE /////////////////
 
-void ESP_STATION(ESP8266WebServer &server, bool keepServerOpenInLAN) {
+void ESP_STATION(bool keepServerOpenInLAN) {
 
 	if ( WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA ) {
 		Serial.println("Closing server...");
@@ -477,11 +509,11 @@ void ESP_STATION(ESP8266WebServer &server, bool keepServerOpenInLAN) {
 
 	if (keepServerOpenInLAN) {
 		Serial.println("Keep server listening on LAN");
-		server.begin();
+		configWifiServer->begin();
 	} else {
 		Serial.println("Don't keep server listening on LAN");
-		server.stop(); ///// DEBUGGING... ???
-		server.close(); ///// DEBUGGING... ???
+		configWifiServer->stop(); ///// DEBUGGING... ???
+		configWifiServer->close(); ///// DEBUGGING... ???
 	}
 
 	WiFi.mode(WIFI_STA); ///// DEBUGGING... uncomment if using one of the above
@@ -493,8 +525,7 @@ void ESP_STATION(ESP8266WebServer &server, bool keepServerOpenInLAN) {
 /////////////////////////////////////////////////
 ////////// STATION + ACCESS POINT MODE //////////
 
-// void ESP_AP_STA(ESP8266WebServer *server) {
-void ESP_AP_STA(ESP8266WebServer &server, char *ssid_AP, char *password_AP) {
+void ESP_AP_STA() {
 
 	WiFi.mode(WIFI_AP_STA);
 
@@ -509,7 +540,37 @@ void ESP_AP_STA(ESP8266WebServer &server, char *ssid_AP, char *password_AP) {
 	Serial.print("AP MAC Address: ");
 	Serial.println(WiFi.softAPmacAddress());
 
-	server.begin();
-	Serial.println("Server started. Access Point SSID: " + String(ssid_AP));
-	// server.setNoDelay(true);
+	configWifiServer->begin();
+	Serial.print("Server started. Access Point SSID: ");
+	Serial.println(ssid_AP);
+	// configWifiServer->setNoDelay(true);
+}
+
+/////////////////////////////////////////////////
+////////////////// TOGGLE MODE //////////////////
+
+void ESP_AP_TOGGLE(bool keepServerOpenInLAN) {
+
+	Serial.println("Toggling Access Point...");
+	//Serial.println(WiFi.getMode());
+	switch (WiFi.getMode()) {
+		case WIFI_OFF: // case 0:
+			//Serial.println("WiFi off");
+			break;
+		case WIFI_STA: // case 1:
+			//Serial.println("Station (STA)");
+			ESP_AP_STA();
+			break;
+		case WIFI_AP: // case 2:
+			//Serial.println("Access Point (AP)");
+			break;
+		case WIFI_AP_STA: // case 3:
+			//Serial.println("Station and Access Point (STA+AP)");
+			ESP_STATION(keepServerOpenInLAN);
+			break;
+		default:
+			Serial.print("WiFi mode NPI xD: ");
+			Serial.println(WiFi.getMode());
+			break;
+	}
 }

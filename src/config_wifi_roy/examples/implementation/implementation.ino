@@ -52,10 +52,10 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   pinMode(5, INPUT);     // Initialize the DIGITAL 5 pin as an input
 
-  setupWifiConfigServer(server, EEPROM_ADDR_CONNECTED_SSID, EEPROM_ADDR_CONNECTED_PASSWORD);
+  setupWifiConfigServer(server, EEPROM_ADDR_CONNECTED_SSID, EEPROM_ADDR_CONNECTED_PASSWORD, AP_SSID, AP_PASSWORD);
 
   Serial.println("Starting server anyway xD ...");
-  ESP_AP_STA(server, AP_SSID, AP_PASSWORD);
+  ESP_AP_STA();
 
 }
 
@@ -69,7 +69,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   
-  wifiConfigLoop(server);
+  wifiConfigLoop();
   
   if (WiFi.status() == WL_CONNECTED) {
     // Do while WiFi is connected
@@ -82,7 +82,7 @@ void loop() {
   if ( changed((String)digitalRead(5), pin5value) ) {
     Serial.print("cambio pin 5 a: ");
     Serial.println(pin5value);
-    pin5value == "1" ? ESP_AP_STA(server, AP_SSID, AP_PASSWORD) : ESP_STATION(server, true);
+    pin5value == "1" ? ESP_AP_STA() : ESP_STATION(true);
   }
   
 }
