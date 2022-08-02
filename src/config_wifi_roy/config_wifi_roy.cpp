@@ -132,6 +132,14 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		}
 	});
 
+	configWifiServer->on("/restart", [&]() {
+
+		configWifiServer->sendHeader("Location", String("/"), true); // Redirecto to home /
+		configWifiServer->send ( 302, "text/plain", "");
+
+		ESP.restart(); // tells the SDK to reboot, not as abrupt as ESP.reset()
+	});
+
 
 	if ( !EEPROM_CELL_IS_EMPTY(EEPROM_ADDR_CONNECTED_SSID) ) {
 		Serial.println("Found SSID in memory... Trying to connect...");
