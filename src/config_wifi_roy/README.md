@@ -40,28 +40,37 @@ Manages the configuration server and reconnection routines:
 
 ### Create the web server to configure ESP
 
-`setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD);`
+`setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD, char *ssid_for_AP, char *password_for_AP);`
 
 ### Handles the runtime interactions
 
-`wifiConfigLoop(ESP8266WebServer &server);`
+`wifiConfigLoop();`
 
 ### Sets the ESP as Station and closes config server
 
-`ESP_STATION(ESP8266WebServer &server);`
+`ESP_STATION(bool keepServerOpenInLAN);`
 
 ### Sets the ESP as Access Point + Station and opens config server
 
-`ESP_AP_STA(ESP8266WebServer &server, char *ssid_AP, char *password_AP);`
+`ESP_AP_STA();`
+
+### Toggles AP mode
+
+`ESP_AP_TOGGLE(bool keepServerOpenInLAN);`
 
 ## Usage
 
-- In `setup()`: `setupWifiConfigServer()`
+- In `setup()`: `setupWifiConfigServer(...)`
 - In `loop()`: `wifiConfigLoop()`
-- During execution can toggle between `ESP_STATION()` and `ESP_AP_STA()`
+- During execution can toggle between `ESP_STATION()` and `ESP_AP_STA()`; or use `ESP_AP_TOGGLE();`
 
 ## TO DOs
 
 - [ ] Make it able to connect to Enterprise networks (WPA2-ENTERPRISE)
-- [ ] How to redirecto to internal ports if a server is open?
-- [ ] Test keeping a server open to listen on LAN (admin device from PC)
+- [x] How to redirecto to internal ports if a server is open? (just create another server listening on the new port)
+- [x] Test keeping a server open to listen on LAN (admin device from PC)
+- [ ] Add favicon to webpage
+- [ ] Add see password (js and CSS only)
+- [ ] Add Captive Portal if disconnected from a network
+- [ ] Bug? cuando se conecta a red deja de parpadear aunque esté en modo AP
+- [ ] Bug? cuando no hay pass en memoria, inicia AP, despues de un tiempo te conectas al ESP y se cierra el AP
