@@ -36,4 +36,10 @@ returns `true` if is empty (set to 255)
 
 returns `false` if is not empty (other than 255)
 
+### Clear all the EEPROM data
+
+`EEPROM_CLEAR();`
+
+does not return (void)
+
 ## TO DOs

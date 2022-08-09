@@ -17,7 +17,6 @@ String EEPROM_READ(int addr) {
 void EEPROM_ERASE(int addr) {
   int valueSize = EEPROM.read(addr);
   for (int i = 0; i < valueSize; i++) {
-    addr++;
     EEPROM.write(i, -1);
   }
   EEPROM.commit();
@@ -37,4 +36,11 @@ void EEPROM_WRITE(int addr, String string) {
 
 bool EEPROM_CELL_IS_EMPTY(int addr) {
   return EEPROM.read(addr) == 255;
+}
+
+bool EEPROM_CLEAR() {
+  for (int E = 0; E < EEPROM.length(); E++) {
+    EEPROM.write(E, -1); // Itera por toda la EEPROM y reemplaza cualquier valor que esté en algún byte por cero (lo cambié a -1)
+  }
+  EEPROM.commit();
 }

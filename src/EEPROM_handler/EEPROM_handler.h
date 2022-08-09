@@ -18,6 +18,8 @@ void EEPROM_WRITE(int addr, String string);
 
 bool EEPROM_CELL_IS_EMPTY(int addr);
 
+bool EEPROM_CLEAR();
+
 
 
 
