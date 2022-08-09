@@ -525,7 +525,10 @@ void ESP_STATION(bool keepServerOpenInLAN) {
 	}
 
 	WiFi.mode(WIFI_STA); ///// DEBUGGING... uncomment if using one of the above
-	
+
+	WiFi.setHostname(ssid_AP); // (works in esp8266) Establece nombre de host (se muestra en tabla DHCP en router) // Do after changing WiFi mode
+	WiFi.hostname(ssid_AP);    // (works in esp8266) Establece nombre de host (se muestra en tabla DHCP en router) // Do after changing WiFi mode
+
 	// WiFi.softAPdisconnect(true) ? Serial.println("Server closed.") : Serial.println("Fail closing server."); ///// DEBUGGING... ('true' to remove the AP mode ??? BUT SETS MODE TO NULL ???)
 
 }
@@ -536,6 +539,9 @@ void ESP_STATION(bool keepServerOpenInLAN) {
 void ESP_AP_STA() {
 
 	WiFi.mode(WIFI_AP_STA);
+
+	WiFi.setHostname(ssid_AP); // (works in esp8266) Establece nombre de host (se muestra en tabla DHCP en router) // Do after changing WiFi mode
+	WiFi.hostname(ssid_AP);    // (works in esp8266) Establece nombre de host (se muestra en tabla DHCP en router) // Do after changing WiFi mode
 
 	Serial.println("Starting server...");
 	
