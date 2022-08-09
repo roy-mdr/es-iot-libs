@@ -95,6 +95,16 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		EEPROM_WRITE(EEPROM_ADDR_CONNECTED_SSID, configWifiServer->arg("ssid"));
 		EEPROM_WRITE(EEPROM_ADDR_CONNECTED_PASSWORD, configWifiServer->arg("password"));
 
+		if (configWifiServer->arg("ssid") == "") {
+			Serial.println("Received empty SSID. Erasing.");
+			EEPROM_ERASE(EEPROM_ADDR_CONNECTED_SSID);
+		}
+
+		if (configWifiServer->arg("ssid") == "") {
+			Serial.println("Received empty PASSWORD. Erasing.");
+			EEPROM_ERASE(EEPROM_ADDR_CONNECTED_PASSWORD);
+		}
+
 		connectWiFi();
 	});
 
@@ -146,7 +156,7 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		connectWiFi();
 		ESP_STATION(true);
 	} else {
-		Serial.println("Din't found SSID in memory... Starting WIFI Access Point...");
+		Serial.println("Didn't found SSID in memory... Starting WIFI Access Point...");
 		ESP_AP_STA();
 	}
 }
@@ -158,7 +168,7 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 /////////////////////////////////////////////////
 ///////////////////// LOOP /////////////////////
 
-void wifiConfigLoop(ESP8266WebServer &server) {
+void wifiConfigLoop() {
 	
 	configWifiServer->handleClient();
 
@@ -270,9 +280,20 @@ void connectWiFi() {
 	Serial.print("Password: ");
 	Serial.println(r_pass);
 
+	if (r_ssid[0] == EEPROM_ADDR_CONNECTED_SSID) { // Is this the best way?
+		Serial.println("No SSID. Can't connect.");
+		return;
+	}
+
 	Serial.println("Connecting...");
 
 	nwsc_timeout = nwsc_timeout_default + 20000; // 20 segundos aprox. de respiro al network scan
+
+	if (r_pass[0] == EEPROM_ADDR_CONNECTED_PASSWORD) { // Is this the best way?
+		Serial.println("Connecting without password");
+		WiFi.begin(r_ssid);
+		return;
+	}
 
 	WiFi.begin(r_ssid, r_pass);
 

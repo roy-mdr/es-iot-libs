@@ -66,7 +66,7 @@
 
 void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD, char *ssid_for_AP, char *password_for_AP);
 
-void wifiConfigLoop(ESP8266WebServer &server);
+void wifiConfigLoop();
 
 void connectWiFi();
 
