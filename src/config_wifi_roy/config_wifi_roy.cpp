@@ -35,6 +35,10 @@ String       nwsc_result_html  = "";
 String       nwsc_result_txt   = "";
 unsigned int nwsc_result_total = 0;
 
+/***** DNS CAPTIVE PORTAL *****/
+const byte DNS_PORT = 53;
+DNSServer dnsServer;
+
 
 
 
@@ -53,9 +57,43 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 	WiFi.setAutoReconnect(false); // Establece si el módulo intentará volver a conectarse a un punto de acceso en caso de que esté desconectado.
 	WiFi.setAutoConnect(false); // Configura el módulo para conectarse automáticamente tras encenderse al último punto de acceso utilizado.
 
+	Serial.println("Starting DNS Captive Portal...");
+	dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+	dnsServer.start(DNS_PORT, "*", server_ip); // if DNSServer is started with "*" for domain name, it will reply with provided IP to all DNS request
 
+
+
+	configWifiServer->onNotFound([&]() {
+
+		if (captivePortal()) { // If caprive portal redirect instead of displaying the error page.
+			return;
+		}
+
+		String message = F("File Not Found\n\n");
+		message += F("URI: ");
+		message += server.uri();
+		message += F("\nMethod: ");
+		message += (server.method() == HTTP_GET) ? "GET" : "POST";
+		message += F("\nArguments: ");
+		message += server.args();
+		message += F("\n");
+
+		for (uint8_t i = 0; i < server.args(); i++) {
+			message += String(F(" ")) + server.argName(i) + F(": ") + server.arg(i) + F("\n");
+		}
+
+		server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+		server.sendHeader("Pragma", "no-cache");
+		server.sendHeader("Expires", "-1");
+		server.send(404, "text/plain", message);
+	});
 
 	configWifiServer->on("/", [&]() {
+
+		if (captivePortal()) { // If caprive portal redirect instead of displaying the page.
+			return;
+		}
+
 		configWifiServer->send(200, "text/html", String(WIFI_ROY_MAIN_1)
 			+ nwsc_result_total + " Networks found..."
 			+ WIFI_ROY_MAIN_2
@@ -169,6 +207,8 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 ///////////////////// LOOP /////////////////////
 
 void wifiConfigLoop() {
+
+	dnsServer.processNextRequest();
 	
 	configWifiServer->handleClient();
 
@@ -608,4 +648,40 @@ void ESP_AP_TOGGLE(bool keepServerOpenInLAN) {
 			Serial.println(WiFi.getMode());
 			break;
 	}
+}
+
+/** Redirect to captive portal if we got a request for another domain. Return true in that case so the page handler do not try to handle the request again. */
+bool captivePortal() {
+  if (
+  	  !isIp(configWifiServer->hostHeader())
+  	  // && server.hostHeader() != (String(myHostname) + ".local") // Only for mDNS
+  	) {
+    Serial.println("Request redirected to captive portal");
+    configWifiServer->sendHeader("Location", String("http://") + toStringIp(configWifiServer->client().localIP()), true);
+    configWifiServer->send(302, "text/plain", "");   // Empty content inhibits Content-length header so we have to close the socket ourselves.
+    configWifiServer->client().stop(); // Stop is needed because we sent no content length
+    return true;
+  }
+  return false;
+}
+
+/** Is this an IP? */
+bool isIp(String str) {
+  for (size_t i = 0; i < str.length(); i++) {
+    int c = str.charAt(i);
+    if (c != '.' && (c < '0' || c > '9')) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** IP to String? */
+String toStringIp(IPAddress ip) {
+  String res = "";
+  for (int i = 0; i < 3; i++) {
+    res += String((ip >> (8 * i)) & 0xFF) + ".";
+  }
+  res += String(((ip >> 8 * 3)) & 0xFF);
+  return res;
 }

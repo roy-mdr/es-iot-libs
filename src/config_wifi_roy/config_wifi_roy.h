@@ -31,6 +31,7 @@
 #include <blink_async.h>
 #include <EEPROM_handler.h>
 #include <ESP8266WebServer.h>
+#include <DNSServer.h>
 
 
 
@@ -81,6 +82,12 @@ void ESP_STATION(bool keepServerOpenInLAN);
 void ESP_AP_STA();
 
 void ESP_AP_TOGGLE(bool keepServerOpenInLAN);
+
+bool captivePortal();
+
+bool isIp(String str);
+
+String toStringIp(IPAddress ip);
 
 
 
