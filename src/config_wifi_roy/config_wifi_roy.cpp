@@ -104,6 +104,23 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		);
 	});
 
+	configWifiServer->on("/info", [&]() {
+
+		configWifiServer->send(200, "application/json", String("{")
+			+ ("\"alias\":\"") + ssid_AP + ("\",")
+			+ ("\"type\":\"") + "es-iot-controller" + ("\",")
+			+ ("\"firmware\":\"") + "es-firmware" + ("\",")
+			+ ("\"mac\":\"") + WiFi.macAddress() + ("\",")
+			+ ("\"ipv4_gateway\":\"") + WiFi.gatewayIP().toString() + ("\",")
+			+ ("\"ipv4_interface\":\"") + WiFi.localIP().toString() + ("\",")
+			+ ("\"ipv4_ap_gateway\":\"") + server_ip.toString() + ("\"")
+			// board info?
+			// memory size?
+			// memory used?
+			+ ("}")
+		);
+	});
+
 	configWifiServer->on("/status/json", [&]() {
 		configWifiServer->send(200, "application/json", String("{\"status\":\"") + getNetStatus() + "\"" + (WiFi.isConnected() ? ",\"info\":{\"ssid\":\"" + EEPROM_READ(EEPROM_ADDR_CONNECTED_SSID) + "\"}" : "") + ",\"networks\":" + nwsc_result_json + "}" );
 	});
