@@ -584,6 +584,7 @@ void getNetworksAsync(bool shouldScan) {
 			nwsc_result_html += WiFi.SSID(i).c_str();
 			nwsc_result_html += "\">";
 			nwsc_result_html += WiFi.SSID(i).c_str();
+			nwsc_result_html += nwEnc == "ENC_TYPE_NONE" ? "" : " 🔒";
 			nwsc_result_html += " [";
 			nwsc_result_html += WiFi.RSSI(i);
 			nwsc_result_html += "]</option>";

@@ -286,7 +286,7 @@ h1 {
 							
 							for (let i = 0; i < resp.networks.length; i++) {
 								const nwk = resp.networks[i];
-								const nwkEl = `<div class="nwk send" onclick="setNwkName('${nwk.ssid}');"><span class="n">${nwk.ssid}</span><span class="q">${Math.round((nwk.rssi+80)/40*100)}%</span></div>`;
+								const nwkEl = `<div class="nwk send" onclick="setNwkName('${nwk.ssid}');"><span class="n">${nwk.ssid}${nwk.enc_str == 'ENC_TYPE_NONE' ? '' : ' 🔒'}</span><span class="q">${Math.round((nwk.rssi+80)/40*100)}%</span></div>`;
 
 								if (i == 0) {
 									nwkCont.innerHTML = '';
