@@ -77,6 +77,8 @@ void connectWiFi();
 
 bool wifiStatChanged(byte &compareVar);
 
+void parseNetworks(bool n);
+
 void getNetworksAsync(bool shouldScan);
 
 String getNetStatus();

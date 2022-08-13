@@ -399,33 +399,9 @@ void connectWiFi() {
 }
 
 /////////////////////////////////////////////////
-////////////// SCAN NETWORKS ASYNC //////////////
+///////////// PARSE FOUND NETWORKS /////////////
 
-void getNetworksAsync(bool shouldScan) {
-
-	if (!shouldScan) {
-		nwsc_track = nwsc_timeout;
-		return;
-	}
-
-
-	if ( millis() != nwsc_timestamp ) { // "!=" intead of ">" tries to void possible bug when millis goes back to 0
-		nwsc_track++;
-		nwsc_timestamp = millis();
-	}
-	
-	if ( nwsc_track > nwsc_timeout ) {
-		// DO TIMEOUT!
-		nwsc_timeout = nwsc_timeout_default;
-		nwsc_track = 0;
-
-		/* RUN FUNCTION (trigger Wi-Fi network scan) */
-		WiFi.scanNetworks(true, true);
-		Serial.println("Scan start ... ");
-	}
-
-
-	/* print out Wi-Fi network scan result upon completion */
+void parseNetworks(bool n) {
 
 	char *txt_buf;
 	char *json_buf;
@@ -433,8 +409,6 @@ void getNetworksAsync(bool shouldScan) {
 	size_t txt_sz;
 	size_t json_sz;
 	size_t html_sz;
-
-	int n = WiFi.scanComplete();
 
 	if(n >= 0) { // -1 = Scanning still in progress, -2 = Scanning has not been triggered
 
@@ -615,6 +589,34 @@ void getNetworksAsync(bool shouldScan) {
 	WiFi.scanDelete();
 	
 	
+}
+
+/////////////////////////////////////////////////
+////////////// SCAN NETWORKS ASYNC //////////////
+
+void getNetworksAsync(bool shouldScan) {
+
+	if (!shouldScan) {
+		nwsc_track = nwsc_timeout;
+		return;
+	}
+
+
+	if ( millis() != nwsc_timestamp ) { // "!=" intead of ">" tries to void possible bug when millis goes back to 0
+		nwsc_track++;
+		nwsc_timestamp = millis();
+	}
+
+	if ( nwsc_track > nwsc_timeout ) {
+		// DO TIMEOUT!
+		nwsc_timeout = nwsc_timeout_default;
+		nwsc_track = 0;
+
+		/* RUN FUNCTION (trigger Wi-Fi network scan) */
+		WiFi.scanNetworksAsync(parseNetworks, true);
+		Serial.println("Scan start ... ");
+	}
+
 }
 
 /////////////////////////////////////////////////
