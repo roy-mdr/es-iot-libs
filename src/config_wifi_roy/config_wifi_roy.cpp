@@ -118,10 +118,10 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		);
 	});
 
-	configWifiServer->on("/config", [&]() {
-		configWifiServer->send(200, "text/html", String(WIFI_ROY_CONFIG_1)
+	configWifiServer->on("/set_wifi", [&]() {
+		configWifiServer->send(200, "text/html", String(WIFI_ROY_SET_WIFI_1)
 			+ WIFI_ROY_NO_JS_CSS
-			+ WIFI_ROY_CONFIG_2
+			+ WIFI_ROY_SET_WIFI_2
 		);
 
 		if( !EEPROM_CELL_IS_EMPTY(EEPROM_ADDR_CONNECTED_SSID) ) {
@@ -274,9 +274,12 @@ void wifiConfigLoop() {
 			Serial.println();
 			WiFi.printDiag(Serial);
 			Serial.println();
+			Serial.print("Default Gateway IP: ");
+			Serial.print(WiFi.gatewayIP());
+			Serial.println(" (esta IP apunta al -modem- al que estás conectado)");
 			Serial.print("STA dirección IP: ");
 			Serial.print(WiFi.localIP());
-			Serial.println(" (esta IP apunta al WeMos cuando estas conectado al modem en red local)");
+			Serial.println(" (esta IP apunta al WeMos cuando estas conectado al modem en red local LAN)");
 			Serial.print("STA MAC Address: ");
 			Serial.println(WiFi.macAddress());
 		}

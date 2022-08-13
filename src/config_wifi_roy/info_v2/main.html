@@ -145,9 +145,9 @@ html, body {
 </head>
 <body>
 	<div class="WiFi_selector">
-		<form action="config" method='GET' target="response" id="form" autocomplete="off">
+		<form action="set_wifi" method='GET' target="response" id="form" autocomplete="off">
 		<!-- ????? In some cases, the browser will keep suggesting autocompletion values even if the autocomplete attribute is set to off. This unexpected behavior can be quite puzzling for developers. The trick to really forcing the no-autocompletion is to assign a random string to the attribute... Since this random value is not a valid one, the browser will give up. ????? -->
-		<!-- <form action="config" method='GET' target="response" id="form" autocomplete="nope"> -->
+		<!-- <form action="set_wifi" method='GET' target="response" id="form" autocomplete="nope"> -->
 			<div>
 				<label>
 					<div class="l_title">Network name:</div>
@@ -224,7 +224,7 @@ html, body {
 			opt.innerHTML = 'Sending data...';
 
 			const smt = ajaxReq();
-			smt.open('GET', encodeURI(`/config?ssid=${form.ssid.value}&password=${form.password.value}`), true);
+			smt.open('GET', encodeURI(`/set_wifi?ssid=${form.ssid.value}&password=${form.password.value}`), true);
 			smt.send();
 			
 			smt.onreadystatechange = () => {
