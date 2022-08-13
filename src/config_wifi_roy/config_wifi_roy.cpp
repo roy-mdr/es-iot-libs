@@ -95,12 +95,16 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 		}
 
 		configWifiServer->send(200, "text/html", String(WIFI_ROY_MAIN_1)
-			+ nwsc_result_total + " Networks found..."
+			+ ssid_AP
 			+ WIFI_ROY_MAIN_2
-			+ nwsc_result_html
+			+ ssid_AP
 			+ WIFI_ROY_MAIN_3
-			+ (WiFi.getMode() == WIFI_STA ? "<a href=\"\/start_ap\">Start Access Point<\/a>" : "<a href=\"\/close_ap?stop=false\">Close Access Point<\/a>")
+			+ nwsc_result_total + " Networks found..."
 			+ WIFI_ROY_MAIN_4
+			+ nwsc_result_html
+			+ WIFI_ROY_MAIN_5
+			+ (WiFi.getMode() == WIFI_STA ? "<a href=\"\/start_ap\">Start Access Point<\/a>" : "<a href=\"\/close_ap?stop=false\">Close Access Point<\/a>")
+			+ WIFI_ROY_MAIN_6
 		);
 	});
 
