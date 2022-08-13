@@ -34,6 +34,7 @@ String       nwsc_result_json  = "[]";
 String       nwsc_result_html  = "";
 String       nwsc_result_txt   = "";
 unsigned int nwsc_result_total = 0;
+unsigned int nwsc_result_filtd = 0;
 
 /***** DNS CAPTIVE PORTAL *****/
 const byte DNS_PORT = 53;
@@ -99,7 +100,7 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, i
 			+ WIFI_ROY_MAIN_2
 			+ ssid_AP
 			+ WIFI_ROY_MAIN_3
-			+ nwsc_result_total + " Networks found..."
+			+ nwsc_result_filtd + " Networks found..." // Before: nwsc_result_total
 			+ WIFI_ROY_MAIN_4
 			+ nwsc_result_html
 			+ WIFI_ROY_MAIN_5
@@ -436,15 +437,78 @@ void getNetworksAsync(bool shouldScan) {
 	int n = WiFi.scanComplete();
 
 	if(n >= 0) { // -1 = Scanning still in progress, -2 = Scanning has not been triggered
-		Serial.printf("%d network(s) found\n", n);
+
+		// CREATE BUFFERS TO KEEP ONLY ONE SSID WITH THE STRONGEST SIGNAL
+
+		String       arrSSID[n];
+		int32_t      arrEncryp[n];
+		int32_t      arrRSSI[n];
+		unsigned int arrIndex[n];
+
+		Serial.print("Original net array: [");
+
+		for (unsigned int i = 0; i < n; i++) { // for each network found
+
+			Serial.print("(");
+			Serial.print(WiFi.SSID(i));
+			Serial.print(":");
+			Serial.print(WiFi.RSSI(i));
+			Serial.print(")");
+
+			for (unsigned int x = 0; x < n; ++x) { // for each network saved
+
+				bool netDup = false;
+
+				if ( (WiFi.SSID(i) == arrSSID[x]) && (WiFi.encryptionType(i) == arrEncryp[x]) ) {
+					// network already added
+					netDup = true;
+					if ( WiFi.RSSI(i) > arrRSSI[x] ) {
+						arrRSSI[x]  = WiFi.RSSI(i);
+						arrIndex[x] = i;
+					}
+					break;
+				}
+
+				if ( x == n-1 ) { // in the last loop
+					if (!netDup) {
+						arrSSID[i]   = WiFi.SSID(i);
+						arrRSSI[i]   = WiFi.RSSI(i);
+						arrEncryp[i] = WiFi.encryptionType(i);
+						arrIndex[i]  = i;
+					}
+				}
+			}
+		}
+
+		Serial.println("]");
 
 		nwsc_result_json  = "[";
 		nwsc_result_html  = "";
 		nwsc_result_txt   = "";
 		nwsc_result_total = n;
+		nwsc_result_filtd = 0;
 
-		for (int i = 0; i < n; i++) {
+		Serial.print("Filtered net array: [");
 
+		for (unsigned int s = 0; s < n; s++) { // for each network saved
+
+			Serial.print("(");
+			if (arrSSID[s] == "") {
+				Serial.print("=EMPTY=");
+			} else {
+				Serial.print(arrSSID[s]);
+				Serial.print(":");
+				Serial.print(arrRSSI[s]);
+			}
+			Serial.print(")");
+
+			if (arrSSID[s] == "") {
+				continue;
+			}
+
+			nwsc_result_filtd++;
+
+			unsigned int i = arrIndex[s];
 			char *nwEnc = "";
 
 			/* Encryption modes */
@@ -485,7 +549,7 @@ void getNetworksAsync(bool shouldScan) {
 			nwsc_result_txt += "]: ";
 			nwsc_result_txt += nwEnc;
 			nwsc_result_txt += WiFi.isHidden(i) ? " [hidden]" : "";
-			nwsc_result_txt += i == n-1 ? "" : "\n";
+			nwsc_result_txt += "\n";
 
 //			txt_sz = snprintf(NULL, 0, "%d: %s [%d], Ch:%d, %ddBm, Enc[%d]: %s%s%s", i + 1, WiFi.SSID(i).c_str(), WiFi.BSSID(i), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i), nwEnc, WiFi.isHidden(i) ? " [hidden]" : "", i == n-1 ? "" : "\n");
 //			txt_buf = (char *)malloc(txt_sz + 1); /* make sure you check for != NULL in real code */
@@ -508,7 +572,7 @@ void getNetworksAsync(bool shouldScan) {
 			nwsc_result_json += "\",\"hidden\":";
 			nwsc_result_json += WiFi.isHidden(i) ? "true" : "false";
 			nwsc_result_json += "}";
-			nwsc_result_json += i == n-1 ? "" : ",";
+			nwsc_result_json += ",";
 
 //			json_sz = snprintf(NULL, 0, "{\"ssid\":\"%s\",\"bssid\":%d,\"channel\":%d,\"rssi\":%d,\"enc_type\":%d,\"enc_str\":\"%s\",\"hidden\":%s}%s", WiFi.SSID(i).c_str(), WiFi.BSSID(i), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i), nwEnc, WiFi.isHidden(i) ? "true" : "false", i == n-1 ? "" : ",");
 //			json_buf = (char *)malloc(json_sz + 1); /* make sure you check for != NULL in real code */
@@ -528,11 +592,20 @@ void getNetworksAsync(bool shouldScan) {
 //			html_buf = (char *)malloc(html_sz + 1); /* make sure you check for != NULL in real code */
 //crash			snprintf(html_buf, html_sz+1, "<option value=\"%s\">%s [%d]</option>", WiFi.SSID(i).c_str(), WiFi.SSID(i).c_str(), WiFi.RSSI(i));
 //crash			nwsc_result_html += html_buf;
+
+		}
+
+		Serial.println("]");
+
+
+		if (nwsc_result_filtd > 0) {
+			nwsc_result_json[nwsc_result_json.length()-1] = ' '; // Get rid of the last "," in the array
 		}
 
 		nwsc_result_json += "]";
 
 		// Serial output
+		Serial.printf("%d network(s) found\n", nwsc_result_filtd);
 		Serial.println(nwsc_result_txt);
 		// Serial.println(nwsc_result_json);
 		// Serial.println(nwsc_result_html);
