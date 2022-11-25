@@ -4,14 +4,21 @@
 /* #include <config_wifi_roy.h>                                                                                      */
 /* ESP8266WebServer server(80);                                                                                      */
 /*                                                                                                                   */
-/* #define EEPROM_ADDR_CONNECTED_SSID 1       // Start saving connected network SSID from this memory address        */
+/* #define EEPROM_ADDR_EARLY_UNPLUG 1         // Start saving early unplug counter (just needs 1 byte)               */
+/* #define EEPROM_ADDR_CONNECTED_SSID 2       // Start saving connected network SSID from this memory address        */
 /* #define EEPROM_ADDR_CONNECTED_PASSWORD 30  // Start saving connected network Password from this memory address    */
 /* #define AP_SSID "ESP8266_AP"               // Set your own Network Name (SSID)                                    */
 /* #define AP_PASSWORD "12345678"             // Set your own password                                               */
 /*                                                                                                                   */
 /* setup() {                                                                                                         */
 /* 	EEPROM.begin(4096);                                                                                              */
-/* 	setupWifiConfigServer(server, EEPROM_ADDR_CONNECTED_SSID, EEPROM_ADDR_CONNECTED_PASSWORD, AP_SSID, AP_PASSWORD); */
+/* 	setupWifiConfigServer(                                                                                           */
+/*    server,                                                                                                        */
+/*    EEPROM_ADDR_EARLY_UNPLUG,                                                                                      */
+/*    EEPROM_ADDR_CONNECTED_SSID,                                                                                    */
+/*    EEPROM_ADDR_CONNECTED_PASSWORD,                                                                                */
+/*    AP_SSID, AP_PASSWORD                                                                                           */
+/*  );                                                                                                               */
 /* }                                                                                                                 */
 /*                                                                                                                   */
 /* loop() {                                                                                                          */
@@ -69,7 +76,7 @@
 
 
 
-void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD, char *ssid_for_AP, char *password_for_AP);
+void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_EUNPLUG, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD, char *ssid_for_AP, char *password_for_AP);
 
 void wifiConfigLoop();
 

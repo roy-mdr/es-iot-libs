@@ -3,6 +3,7 @@
 
 ESP8266WebServer *configWifiServer;
 
+int EEPROM_ADDR_EARLY_UNPLUG = 0;
 int EEPROM_ADDR_CONNECTED_SSID = 0;
 int EEPROM_ADDR_CONNECTED_PASSWORD = 0;
 
@@ -47,13 +48,35 @@ DNSServer dnsServer;
 /////////////////////////////////////////////////
 ///////////////// CONFIG SERVER /////////////////
 
-void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD, char *ssid_for_AP, char *password_for_AP) {
+void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_EUNPLUG, int EEPROM_ADDR_FOR_SSID, int EEPROM_ADDR_FOR_PASSWORD, char *ssid_for_AP, char *password_for_AP) {
 
 	configWifiServer               = &server;
+	EEPROM_ADDR_EARLY_UNPLUG       = EEPROM_ADDR_FOR_EUNPLUG;
 	EEPROM_ADDR_CONNECTED_SSID     = EEPROM_ADDR_FOR_SSID;
 	EEPROM_ADDR_CONNECTED_PASSWORD = EEPROM_ADDR_FOR_PASSWORD;
 	ssid_AP                        = ssid_for_AP;
 	password_AP                    = password_for_AP;
+
+	// ----- COUNT EARLY UNPLUG ----- //
+
+	if ( EEPROM_CELL_IS_EMPTY(EEPROM_ADDR_EARLY_UNPLUG) ) {
+		Serial.println("SIII ESTA VACIA OK");
+		EEPROM.write(EEPROM_ADDR_EARLY_UNPLUG, 0);
+		EEPROM.commit();
+	}
+
+	unsigned int currVal = EEPROM.read(EEPROM_ADDR_EARLY_UNPLUG);
+	unsigned int newVal = currVal + 1;
+
+	if ( newVal > 3 ) {
+		EEPROM_CLEAR();
+		ESP.restart(); // tells the SDK to reboot, not as abrupt as ESP.reset()
+	} else {
+		EEPROM.write(EEPROM_ADDR_EARLY_UNPLUG, newVal );
+		EEPROM.commit();
+	}
+
+	// ------------------------------ //
 
 	WiFi.setAutoReconnect(false); // Establece si el módulo intentará volver a conectarse a un punto de acceso en caso de que esté desconectado.
 	WiFi.setAutoConnect(false); // Configura el módulo para conectarse automáticamente tras encenderse al último punto de acceso utilizado.
@@ -233,6 +256,31 @@ void wifiConfigLoop() {
 	dnsServer.processNextRequest();
 	
 	configWifiServer->handleClient();
+
+	// ----- AFTER X SECONDS IS NOT AN EARLY UNPLUG ----- //
+	static unsigned long eup_timestamp = millis();
+	static unsigned int  eup_times = 0;
+	static unsigned int  eup_timeout = 5000; // 5 seconds
+	static unsigned int  eup_track = 0; // to_track = to_timeout; TO: execute function and then start counting
+
+	if ( eup_times < 1 ) {
+
+		if ( millis() != eup_timestamp ) { // "!=" intead of ">" tries to void possible bug when millis goes back to 0
+			eup_track++;
+			eup_timestamp = millis();
+		}
+
+		if ( eup_track > eup_timeout ) {
+			// DO TIMEOUT!
+			eup_times++;
+			eup_track = 0;
+
+			// RUN THIS FUNCTION!
+			EEPROM.write(EEPROM_ADDR_EARLY_UNPLUG, 0);
+			EEPROM.commit();
+		}
+	}
+	// -------------------------------------------------- //
 
 	// LED CONTROLL
 	handleLedBlink();
