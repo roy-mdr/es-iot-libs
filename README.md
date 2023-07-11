@@ -15,7 +15,7 @@ Estudio Sustenta IoT projects custom libraries
 
 ## TO DOs
 
-- [ ] Make symlink installer / uninstaller for Arduino 2.x
+- [x] Make symlink installer / uninstaller for Arduino 2.x
 - [ ] Make copy installer / uninstaller for Arduino 1.x
 - [ ] Make copy installer / uninstaller for Arduino 2.x
 - [ ] Make library called `nopoll` that handles all the connection with the notification server (like a MQTT client) and only exposes the function to evaluate each event from the server.
