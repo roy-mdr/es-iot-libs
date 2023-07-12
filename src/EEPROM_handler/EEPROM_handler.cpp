@@ -42,5 +42,5 @@ bool EEPROM_CLEAR() {
   for (int E = 0; E < EEPROM.length(); E++) {
     EEPROM.write(E, -1); // Itera por toda la EEPROM y reemplaza cualquier valor que esté en algún byte por cero (lo cambié a -1)
   }
-  EEPROM.commit();
+  return EEPROM.commit();
 }
