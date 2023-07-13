@@ -60,7 +60,6 @@ void setupWifiConfigServer(ESP8266WebServer &server, int EEPROM_ADDR_FOR_EUNPLUG
 	// ----- COUNT EARLY UNPLUG ----- //
 
 	if ( EEPROM_CELL_IS_EMPTY(EEPROM_ADDR_EARLY_UNPLUG) ) {
-		Serial.println("SIII ESTA VACIA OK");
 		EEPROM.write(EEPROM_ADDR_EARLY_UNPLUG, 0);
 		EEPROM.commit();
 	}
